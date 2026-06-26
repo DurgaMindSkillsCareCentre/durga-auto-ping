@@ -1,0 +1,194 @@
+name: Durga Centre - Daily Rotation Ping
+
+# ─────────────────────────────────────────────────────────────────
+# WHAT THIS DOES (plain English):
+# Every night this robot "rings the doorbell" of Google, Bing and
+# Yandex and says "hey, come look at my sitemap, something changed."
+# It also fires an IndexNow request (one call -> Bing relays it to
+# Google + Yandex + Seznam.cz too) for instant indexing on the URLs
+# we list, using a key file hosted on YOUR GitHub Pages domain
+# (since WordPress.com / Blogger do not allow root-folder uploads).
+#
+# Each platform call is wrapped so that if ONE engine is slow/down,
+# the others still run and the job does not fail silently.
+# ─────────────────────────────────────────────────────────────────
+
+on:
+  schedule:
+    - cron: '30 1 * * *'   # 07:30 AM IST daily
+  workflow_dispatch:        # lets you click "Run workflow" manually on GitHub
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+
+      # ───────────────────────────────────────────────────────────
+      # STEP 1: Decide which "group" of pages to focus on today
+      # (day-of-year % 6 -> always 0,1,2,3,4 or 5)
+      # ───────────────────────────────────────────────────────────
+      - name: Get Rotation Group
+        id: group
+        run: echo "GROUP=$(( $(date +%j) % 6 ))" >> "$GITHUB_OUTPUT"
+
+      # ───────────────────────────────────────────────────────────
+      # Helper note: we use curl flags:
+      #   -s            silent (no progress bar)
+      #   -o /dev/null  throw away the response body, we only care about status
+      #   -w "%{http_code}"  print just the HTTP status code
+      #   --retry 3 --retry-delay 5   try again if the engine hiccups
+      #   || echo "FAILED"            never let one bad ping kill the whole job
+      # ───────────────────────────────────────────────────────────
+
+      - name: Group 0 - WordPress Page 1
+        if: steps.group.outputs.GROUP == '0'
+        run: |
+          SITEMAP="https://durgapsychiatriccentrechennai.wordpress.com/sitemap-posts-post-1.xml"
+          echo "Pinging engines for: $SITEMAP"
+          for ENGINE in \
+            "Google|https://www.google.com/ping?sitemap=$SITEMAP" \
+            "Bing|https://www.bing.com/ping?sitemap=$SITEMAP" \
+            "Yandex|https://yandex.com/blogs/realtime/ping?status=ping&url=$SITEMAP"
+          do
+            NAME="${ENGINE%%|*}"
+            URL="${ENGINE##*|}"
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" --retry 3 --retry-delay 5 "$URL" || echo "000")
+            echo "  -> $NAME responded with HTTP $CODE"
+          done
+
+      - name: Group 1 - WordPress Page 2
+        if: steps.group.outputs.GROUP == '1'
+        run: |
+          SITEMAP="https://durgapsychiatriccentrechennai.wordpress.com/sitemap-posts-post-2.xml"
+          echo "Pinging engines for: $SITEMAP"
+          for ENGINE in \
+            "Google|https://www.google.com/ping?sitemap=$SITEMAP" \
+            "Bing|https://www.bing.com/ping?sitemap=$SITEMAP" \
+            "Yandex|https://yandex.com/blogs/realtime/ping?status=ping&url=$SITEMAP"
+          do
+            NAME="${ENGINE%%|*}"
+            URL="${ENGINE##*|}"
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" --retry 3 --retry-delay 5 "$URL" || echo "000")
+            echo "  -> $NAME responded with HTTP $CODE"
+          done
+
+      - name: Group 2 - WordPress Page 3
+        if: steps.group.outputs.GROUP == '2'
+        run: |
+          SITEMAP="https://durgapsychiatriccentrechennai.wordpress.com/sitemap-posts-post-3.xml"
+          echo "Pinging engines for: $SITEMAP"
+          for ENGINE in \
+            "Google|https://www.google.com/ping?sitemap=$SITEMAP" \
+            "Bing|https://www.bing.com/ping?sitemap=$SITEMAP" \
+            "Yandex|https://yandex.com/blogs/realtime/ping?status=ping&url=$SITEMAP"
+          do
+            NAME="${ENGINE%%|*}"
+            URL="${ENGINE##*|}"
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" --retry 3 --retry-delay 5 "$URL" || echo "000")
+            echo "  -> $NAME responded with HTTP $CODE"
+          done
+
+      - name: Group 3 - Tamil Posts Focus (Full Sitemap)
+        if: steps.group.outputs.GROUP == '3'
+        run: |
+          SITEMAP="https://durgapsychiatriccentrechennai.wordpress.com/sitemap.xml"
+          echo "Pinging engines for: $SITEMAP"
+          for ENGINE in \
+            "Google|https://www.google.com/ping?sitemap=$SITEMAP" \
+            "Bing|https://www.bing.com/ping?sitemap=$SITEMAP" \
+            "Yandex|https://yandex.com/blogs/realtime/ping?status=ping&url=$SITEMAP"
+          do
+            NAME="${ENGINE%%|*}"
+            URL="${ENGINE##*|}"
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" --retry 3 --retry-delay 5 "$URL" || echo "000")
+            echo "  -> $NAME responded with HTTP $CODE"
+          done
+
+      - name: Group 4 - Blogger Posts
+        if: steps.group.outputs.GROUP == '4'
+        run: |
+          SITEMAP="https://durgapsychiatric.blogspot.com/sitemap.xml"
+          echo "Pinging engines for: $SITEMAP"
+          for ENGINE in \
+            "Google|https://www.google.com/ping?sitemap=$SITEMAP" \
+            "Bing|https://www.bing.com/ping?sitemap=$SITEMAP" \
+            "Yandex|https://yandex.com/blogs/realtime/ping?status=ping&url=$SITEMAP"
+          do
+            NAME="${ENGINE%%|*}"
+            URL="${ENGINE##*|}"
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" --retry 3 --retry-delay 5 "$URL" || echo "000")
+            echo "  -> $NAME responded with HTTP $CODE"
+          done
+
+      - name: Group 5 - All Platforms
+        if: steps.group.outputs.GROUP == '5'
+        run: |
+          for SITEMAP in \
+            "https://durgapsychiatriccentrechennai.wordpress.com/sitemap.xml" \
+            "https://durgapsychiatric.blogspot.com/sitemap.xml"
+          do
+            echo "Pinging engines for: $SITEMAP"
+            for ENGINE in \
+              "Google|https://www.google.com/ping?sitemap=$SITEMAP" \
+              "Bing|https://www.bing.com/ping?sitemap=$SITEMAP" \
+              "Yandex|https://yandex.com/blogs/realtime/ping?status=ping&url=$SITEMAP"
+            do
+              NAME="${ENGINE%%|*}"
+              URL="${ENGINE##*|}"
+              CODE=$(curl -s -o /dev/null -w "%{http_code}" --retry 3 --retry-delay 5 "$URL" || echo "000")
+              echo "  -> $NAME responded with HTTP $CODE"
+            done
+          done
+
+      # ───────────────────────────────────────────────────────────
+      # STEP X: IndexNow blast (Bing relays to Google + Yandex + Seznam)
+      #
+      # IMPORTANT — read this before relying on it:
+      # IndexNow requires a key file hosted somewhere on the domain
+      # named in "host". The key file's FOLDER also sets the scope —
+      # it can only vouch for URLs under that same folder. Since
+      # WordPress.com and Blogger give zero root-folder access, their
+      # URLs can NEVER be submitted via IndexNow. This is a hard rule
+      # of the protocol, not a setting — no workaround exists.
+      #
+      # What CAN be auto-blasted: the Durga Tamil Hub GitHub Pages
+      # site, since you fully control that repo's files. The key file
+      # lives at:
+      #   https://durgamindskillscarecentre.github.io/durga-tamil-hub/<key>.txt
+      #
+      # SETUP (one-time):
+      #   1. Key already generated: see README/chat for the value.
+      #   2. Create a file named <key>.txt containing just the key
+      #      text, committed to the ROOT of the durga-tamil-hub repo
+      #      (so it publishes at .../durga-tamil-hub/<key>.txt).
+      #   3. Add the key as a GitHub Secret named INDEXNOW_KEY in
+      #      THIS repo (durga-auto-ping) → Settings → Secrets →
+      #      Actions → New repository secret.
+      #   4. That's it — this step auto-skips until the secret exists.
+      # ───────────────────────────────────────────────────────────
+      - name: IndexNow - Durga Tamil Hub (Google + Bing + Yandex + Seznam)
+        if: ${{ secrets.INDEXNOW_KEY != '' }}
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+          INDEXNOW_HOST: "durgamindskillscarecentre.github.io"
+          INDEXNOW_KEY_PATH: "durga-tamil-hub"   # subfolder where the key file + key file itself live
+        run: |
+          echo "Submitting Durga Tamil Hub URLs to IndexNow..."
+          KEY_LOCATION="https://$INDEXNOW_HOST/$INDEXNOW_KEY_PATH/$INDEXNOW_KEY.txt"
+          CODE=$(curl -s -o /dev/null -w "%{http_code}" --retry 3 --retry-delay 5 \
+            -X POST "https://api.indexnow.org/indexnow" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            -d "{
+                  \"host\": \"$INDEXNOW_HOST\",
+                  \"key\": \"$INDEXNOW_KEY\",
+                  \"keyLocation\": \"$KEY_LOCATION\",
+                  \"urlList\": [
+                    \"https://$INDEXNOW_HOST/$INDEXNOW_KEY_PATH/\",
+                    \"https://$INDEXNOW_HOST/$INDEXNOW_KEY_PATH/index.html\"
+                  ]
+                }" || echo "000")
+          echo "  -> IndexNow responded with HTTP $CODE"
+          echo "  (200/202 = accepted, 403 = key file not found/mismatched, 422 = URL outside key's folder scope)"
+
+      - name: Done
+        run: echo "Rotation ping completed $(date -u) UTC"
