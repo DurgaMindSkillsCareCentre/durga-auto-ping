@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Durga Centre — Tamil Hub Monitor</title>
+<style>
+  :root { --navy: #0f172a; --navy2: #1e293b; --gold: #D4AF37; --green: #22c55e; --text: #e2e8f0; --muted: #94a3b8; }
+  body { background: var(--navy); color: var(--text); font-family: sans-serif; padding: 20px; }
+  .card { background: var(--navy2); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+  .status-up { color: var(--green); font-weight: bold; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h2>🔔 IndexNow Monitor</h2>
+    <p>Target: <b>Durga Tamil Hub</b></p>
+    <div id="status-display">
+      Status: <span class="status-up">Active & Running</span>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Activity Log</h3>
+    <div id="log-container" style="font-family: monospace; font-size: 12px;"></div>
+  </div>
+<script>
+  function addLog(msg) {
+    const time = new Date().toLocaleTimeString();
+    document.getElementById('log-container').innerHTML += `<div>[${time}] ${msg}</div>`;
+  }
+  addLog("System initialized.");
+  addLog("Monitoring IndexNow API for Tamil Hub...");
+</script>
+</body>
+</html>
