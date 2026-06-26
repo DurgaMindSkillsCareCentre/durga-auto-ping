@@ -1,0 +1,43 @@
+name: Daily IndexNow Ping
+on:
+  schedule:
+    - cron: '30 1 * * *' # Runs daily at 01:30 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: IndexNow ping (Durga Tamil Hub)
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+        run: |
+          T=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          touch results.ndjson
+          
+          if [ -z "$INDEXNOW_KEY" ]; then
+            echo "{\"engine\":\"IndexNow\",\"target\":\"Tamil Hub\",\"http_code\":\"-\",\"status\":\"not_configured\",\"time_utc\":\"$T\"}" >> results.ndjson
+          else
+            HOST="durgamindskillscarecentre.github.io"
+            PATHNAME="durga-tamil-hub"
+            KEYLOC="https://$HOST/$PATHNAME/$INDEXNOW_KEY.txt"
+            
+            # Ping IndexNow
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" --retry 3 --retry-delay 5 -X POST "https://api.indexnow.org/indexnow" -H "Content-Type: application/json; charset=utf-8" -d "{\"host\":\"$HOST\",\"key\":\"$INDEXNOW_KEY\",\"keyLocation\":\"$KEYLOC\",\"urlList\":[\"https://$HOST/$PATHNAME/\",\"https://$HOST/$PATHNAME/index.html\"]}" || echo "000")
+            
+            if [ "$CODE" = "200" ] || [ "$CODE" = "202" ]; then S="success"; else S="failed"; fi
+            echo "{\"engine\":\"IndexNow\",\"target\":\"Tamil Hub\",\"http_code\":\"$CODE\",\"status\":\"$S\",\"time_utc\":\"$T\"}" >> results.ndjson
+          fi
+
+      - name: Commit status
+        run: |
+          git config user.name "durga-auto-ping-bot"
+          git config user.email "actions@github.com"
+          git add results.ndjson
+          git diff --staged --quiet || (git commit -m "Update ping status" && git push)
