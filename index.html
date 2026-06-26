@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tamil Hub IndexNow Dashboard</title>
+<style>
+body{font-family:Arial,sans-serif;background:#0f172a;color:#fff;margin:0;padding:20px}
+.card{background:#1e293b;border-radius:10px;padding:16px;margin:12px 0}
+h1{color:#f4c542}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.value{font-size:28px;font-weight:bold;color:#22c55e}
+.small{color:#cbd5e1}
+#clock{font-size:20px;color:#f4c542}
+</style>
+</head>
+<body>
+<h1>Durga Tamil Hub - IndexNow Dashboard</h1>
+<div id="clock"></div>
+
+<div class="grid">
+<div class="card"><div class="small">Workflow</div><div class="value">Running</div></div>
+<div class="card"><div class="small">IndexNow</div><div class="value">Success</div></div>
+<div class="card"><div class="small">Tamil Articles</div><div class="value">100</div></div>
+<div class="card"><div class="small">Next Ping</div><div class="value">07:00 IST</div></div>
+</div>
+
+<div class="card">
+<h2>Status</h2>
+<p>HTTP Code: <b>200 / 202</b></p>
+<p>Platform: GitHub Pages</p>
+<p>Search Protocol: IndexNow</p>
+<p>Auto Refresh: 30 seconds</p>
+</div>
+
+<div class="card">
+<h2>Quick Links</h2>
+<ul>
+<li><a style="color:#f4c542" href="https://durgamindskillscarecentre.github.io/durga-tamil-hub/">Tamil Hub</a></li>
+<li><a style="color:#f4c542" href="https://github.com/">GitHub</a></li>
+</ul>
+</div>
+
+<script>
+function tick(){
+ const now=new Date();
+ const ist=new Date(now.toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));
+ document.getElementById('clock').innerHTML="IST Time: "+ist.toLocaleString();
+}
+tick();
+setInterval(tick,1000);
+setInterval(()=>location.reload(),30000);
+</script>
+</body>
+</html>
