@@ -1,0 +1,45 @@
+name: Tamil Hub IndexNow
+
+on:
+  schedule:
+    - cron: '30 1 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  indexnow:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: IndexNow Ping
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+        run: |
+          HOST="durgamindskillscarecentre.github.io"
+          PATHNAME="durga-tamil-hub"
+          KEYLOC="https://$HOST/$PATHNAME/$INDEXNOW_KEY.txt"
+
+          CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST https://api.indexnow.org/indexnow \
+            -H "Content-Type: application/json; charset=utf-8" \
+            -d "{
+              \"host\":\"$HOST\",
+              \"key\":\"$INDEXNOW_KEY\",
+              \"keyLocation\":\"$KEYLOC\",
+              \"urlList\":[
+                \"https://$HOST/$PATHNAME/\",
+                \"https://$HOST/$PATHNAME/index.html\"
+              ]
+            }")
+
+          if [ "$CODE" = "200" ] || [ "$CODE" = "202" ]; then
+            echo "✅ IndexNow Ping: SUCCESS (HTTP $CODE)"
+          else
+            echo "❌ IndexNow Ping: FAILED (HTTP $CODE)"
+            exit 1
+          fi
