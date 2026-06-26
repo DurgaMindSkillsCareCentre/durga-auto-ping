@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Durga Tamil Hub — IndexNow Monitor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --navy: #0f172a;
+    --navy2: #1e293b;
+    --navy3: #334155;
+    --gold: #D4AF37;
+    --gold2: #f0cc55;
+    --purple: #8B4789;
+    --green: #22c55e;
+    --red: #ef4444;
+    --blue: #3b82f6;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--navy);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding: 16px;
+  }
+
+  .header { text-align: center; padding: 24px 16px 20px; border-bottom: 1px solid rgba(212,175,55,0.2); margin-bottom: 20px; }
+  .brand { font-size: 11px; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; margin-bottom: 6px; font-family: 'JetBrains Mono', monospace; }
+  .title { font-size: 22px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .subtitle { font-size: 12px; color: var(--muted); }
+
+  .clock-bar { background: var(--navy2); border: 1px solid rgba(212,175,55,0.15); border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .clock-item { text-align: center; }
+  .clock-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+  .clock-value { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: var(--gold); }
+  
+  .section-title { font-size: 11px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; font-family: 'JetBrains Mono', monospace; margin-bottom: 10px; padding-left: 8px; border-left: 2px solid var(--gold); }
+
+  .card { background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .card-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .card-value { font-size: 20px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+
+  .ping-status-card { background: var(--navy2); border: 1px solid rgba(212,175,55,0.25); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .ping-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .ping-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-family: 'JetBrains Mono', monospace; font-weight: 600; background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+
+  .log-card { background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 14px; margin-bottom: 16px; max-height: 200px; overflow-y: auto; }
+  .log-entry { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; gap: 8px; }
+  .log-time { color: var(--muted); flex-shrink: 0; }
+  .log-success { color: var(--green); }
+  .log-info { color: var(--blue); }
+
+  .trigger-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--purple), #6d3b6b); border: none; border-radius: 8px; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 16px; }
+  .footer { text-align: center; padding: 16px; font-size: 10px; color: var(--muted); border-top: 1px solid rgba(255,255,255,0.05); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand">Durga MindSkillsCare Centre</div>
+  <div class="title">🔔 IndexNow Monitor</div>
+  <div class="subtitle">Daily Automated Ping — Tamil Hub</div>
+</div>
+
+<div class="clock-bar">
+  <div class="clock-item">
+    <div class="clock-label">Time</div>
+    <div class="clock-value" id="ist-time">--:--:--</div>
+  </div>
+  <div class="clock-item">
+    <div class="clock-label">Date</div>
+    <div class="clock-value" id="ist-date">---</div>
+  </div>
+  <div class="clock-item">
+    <div class="clock-label">Status</div>
+    <div class="clock-value green" id="daily-status">Active</div>
+  </div>
+</div>
+
+<div class="section-title">🎯 Today's Task</div>
+<div class="ping-status-card">
+  <div class="ping-header">
+    <div>
+      <div style="font-size:14px;font-weight:600;">IndexNow Ping</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;">Scheduled: 07:30 AM IST</div>
+    </div>
+    <div class="ping-badge" id="ping-badge">✅ Running</div>
+  </div>
+  <div style="font-size:12px; color: var(--muted);">Target: <code>durgamindskillscarecentre.github.io/durga-tamil-hub</code></div>
+</div>
+
+<div class="section-title">📋 Activity Log</div>
+<div class="log-card" id="log-container"></div>
+
+<button class="trigger-btn" onclick="simulatePing()">
+  🔔 Simulate Manual Ping Check
+</button>
+
+<div class="footer">
+  Durga Psychiatric Centre · Tamil Hub Daily Ping · GitHub Actions
+</div>
+
+<script>
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function updateClock() {
+    const ist = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    document.getElementById('ist-time').textContent = pad(ist.getHours()) + ':' + pad(ist.getMinutes()) + ':' + pad(ist.getSeconds());
+    document.getElementById('ist-date').textContent = pad(ist.getDate()) + '/' + pad(ist.getMonth()+1) + '/' + ist.getFullYear();
+  }
+
+  const logContainer = document.getElementById('log-container');
+  function addLog(type, msg) {
+    const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+    logContainer.innerHTML = `<div class="log-entry"><span class="log-time">${time}</span><span class="log-${type}">${msg}</span></div>` + logContainer.innerHTML;
+  }
+
+  function simulatePing() {
+    addLog('info', '[PING] Starting IndexNow request...');
+    setTimeout(() => addLog('info', '[API] Sending POST to indexnow.org...'), 800);
+    setTimeout(() => addLog('success', '[OK] HTTP 202: Success'), 1600);
+    setTimeout(() => addLog('success', '[DONE] Indexing notified.'), 2000);
+  }
+
+  function init() {
+    updateClock();
+    setInterval(updateClock, 1000);
+    addLog('success', '[SYSTEM] Monitor Loaded');
+    addLog('info', '[CONFIG] Daily IndexNow Job active');
+  }
+
+  init();
+</script>
+</body>
+</html>
