@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Durga Centre — Live Ping Monitor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --navy: #0f172a;
+    --navy2: #1e293b;
+    --navy3: #334155;
+    --gold: #D4AF37;
+    --gold2: #f0cc55;
+    --purple: #8B4789;
+    --green: #22c55e;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --blue: #3b82f6;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--navy);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding: 16px;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .header {
+    text-align: center;
+    padding: 24px 16px 20px;
+    border-bottom: 1px solid rgba(212,175,55,0.2);
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 60px; height: 2px;
+    background: linear-gradient(90deg, var(--purple), var(--gold));
+  }
+  .brand {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .title { font-size: 22px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .subtitle { font-size: 12px; color: var(--muted); }
+
+  .source-bar {
+    background: var(--navy2);
+    border: 1px solid rgba(212,175,55,0.15);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .source-bar a { color: var(--gold); text-decoration: none; }
+  .live-dot {
+    display: inline-block; width: 8px; height: 8px;
+    background: var(--green); border-radius: 50%;
+    margin-right: 5px; animation: pulse 1.5s infinite;
+  }
+  .live-dot.off { background: var(--muted); animation: none; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  .section-title {
+    font-size: 11px; letter-spacing: 2px; color: var(--gold);
+    text-transform: uppercase; font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 10px; border-left: 2px solid var(--gold); padding-left: 8px;
+  }
+
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+
+  .card {
+    background: var(--navy2);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 14px 12px;
+  }
+  .card-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .card-value { font-size: 18px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .card-sub { font-size: 10px; color: var(--muted); margin-top: 3px; }
+  .gold { color: var(--gold); } .green { color: var(--green); }
+  .purple { color: var(--purple); } .blue { color: var(--blue); }
+  .amber { color: var(--amber); } .red { color: var(--red); }
+
+  .run-card {
+    background: var(--navy2);
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .run-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 12px; flex-wrap: wrap; gap: 6px;
+  }
+  .run-title { font-size: 13px; font-weight: 600; }
+  .run-time { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+
+  .ping-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 12px;
+  }
+  .ping-row:last-child { border-bottom: none; }
+  .ping-left { display: flex; align-items: center; gap: 8px; }
+  .ping-engine { font-weight: 500; }
+  .ping-target { font-size: 10px; color: var(--muted); }
+  .badge {
+    font-size: 10px; padding: 2px 9px; border-radius: 20px;
+    font-family: 'JetBrains Mono', monospace; font-weight: 600; white-space: nowrap;
+  }
+  .badge-success { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+  .badge-failed  { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+  .badge-pending { background: rgba(148,163,184,0.1); color: var(--muted); border: 1px solid rgba(148,163,184,0.2); }
+
+  .history-card {
+    background: var(--navy2);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 16px;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+  .history-run {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .history-run:last-child { border-bottom: none; }
+  .history-run-head {
+    display: flex; justify-content: space-between; font-size: 11px;
+    color: var(--muted); margin-bottom: 6px; font-family: 'JetBrains Mono', monospace;
+  }
+  .history-pings { display: flex; gap: 6px; flex-wrap: wrap; }
+  .mini-badge {
+    font-size: 9px; padding: 2px 7px; border-radius: 10px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .platform-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .platform-row:last-child { border-bottom: none; }
+  .platform-left { display: flex; align-items: center; gap: 10px; }
+  .platform-icon {
+    width: 30px; height: 30px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 13px;
+  }
+  .platform-name { font-size: 12px; font-weight: 500; }
+  .platform-url { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+  .links-card { background: var(--navy2); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 14px; margin-bottom: 16px; text-align: center; }
+  .link-pill { font-size: 11px; text-decoration: none; padding: 5px 10px; border-radius: 5px; border: 1px solid; display: inline-block; margin: 3px; }
+
+  .footer { text-align: center; padding: 16px; font-size: 10px; color: var(--muted); border-top: 1px solid rgba(255,255,255,0.05); margin-top: 8px; }
+  .footer span { color: var(--gold); }
+
+  .empty-state { text-align: center; padding: 30px 16px; color: var(--muted); font-size: 12px; }
+  .empty-state .big { font-size: 32px; margin-bottom: 10px; }
+
+  .refresh-btn {
+    width: 100%; padding: 12px; background: linear-gradient(135deg, var(--purple), #6d3b6b);
+    border: none; border-radius: 8px; color: #fff; font-size: 13px; font-weight: 600;
+    cursor: pointer; margin-bottom: 16px; font-family: 'Inter', sans-serif;
+  }
+  .refresh-btn:active { opacity: 0.7; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand">Durga MindSkillsCare Centre</div>
+  <div class="title">🔔 Live Ping Monitor</div>
+  <div class="subtitle">Real GitHub Actions Data — Not Simulated</div>
+</div>
+
+<div class="source-bar">
+  <span><span class="live-dot" id="live-dot"></span><span id="source-status">Loading status.json…</span></span>
+  <span id="last-updated">—</span>
+</div>
+
+<div id="content">
+  <div class="empty-state">
+    <div class="big">⏳</div>
+    Fetching real ping data from status.json…
+  </div>
+</div>
+
+<div class="links-card">
+  <div class="card-label" style="margin-bottom:8px;">Quick Links</div>
+  <a href="https://github.com/DurgaMindSkillsCareCentre/durga-auto-ping/actions" target="_blank"
+     class="link-pill" style="color:var(--purple);background:rgba(139,71,137,0.1);border-color:rgba(139,71,137,0.2);">🐙 GitHub Actions</a>
+  <a href="https://search.google.com/search-console" target="_blank"
+     class="link-pill" style="color:var(--gold);background:rgba(212,175,55,0.1);border-color:rgba(212,175,55,0.2);">📊 GSC Dashboard</a>
+  <a href="https://durgapsychiatriccentrechennai.wordpress.com" target="_blank"
+     class="link-pill" style="color:var(--blue);background:rgba(59,130,246,0.1);border-color:rgba(59,130,246,0.2);">🌐 WordPress</a>
+  <a href="https://durgapsychiatric.blogspot.com" target="_blank"
+     class="link-pill" style="color:var(--amber);background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.2);">✍️ Blogger</a>
+  <a href="https://durgamindskillscarecentre.github.io/durga-tamil-hub/" target="_blank"
+     class="link-pill" style="color:var(--green);background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.2);">🪔 Tamil Hub</a>
+</div>
+
+<button class="refresh-btn" onclick="loadStatus()">🔄 Refresh Now</button>
+
+<div class="footer">
+  <span>Durga Psychiatric Centre</span> · Durga MindSkillsCare Centre · T Nagar, Chennai<br/>
+  Reads real results from <code>status.json</code>, written by GitHub Actions after every run.
+</div>
+
+<script>
+  // This page reads status.json from the SAME repo/folder as itself.
+  // The GitHub Actions workflow writes this file after every run, so
+  // whatever you see here is genuinely what happened — not a guess.
+  const STATUS_URL = 'status.json';
+
+  function engineIcon(engine) {
+    const map = { Google: '🟢', Bing: '🔵', Yandex: '🔴', IndexNow: '🟡' };
+    return map[engine] || '⚪';
+  }
+
+  function badgeFor(status) {
+    if (status === 'success') return '<span class="badge badge-success">✅ OK</span>';
+    if (status === 'failed') return '<span class="badge badge-failed">❌ Failed</span>';
+    if (status === 'not_configured') return '<span class="badge badge-pending">⏸ Not Set Up</span>';
+    return '<span class="badge badge-pending">— Pending</span>';
+  }
+
+  function miniBadge(status) {
+    if (status === 'success') return `<span class="mini-badge" style="background:rgba(34,197,94,0.15);color:var(--green);">✓</span>`;
+    if (status === 'failed') return `<span class="mini-badge" style="background:rgba(239,68,68,0.15);color:var(--red);">✗</span>`;
+    return `<span class="mini-badge" style="background:rgba(148,163,184,0.1);color:var(--muted);">–</span>`;
+  }
+
+  function timeAgo(isoString) {
+    if (!isoString) return '—';
+    const then = new Date(isoString);
+    const now = new Date();
+    const diffMs = now - then;
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h ago';
+    const days = Math.floor(hrs / 24);
+    return days + 'd ago';
+  }
+
+  function renderEmpty(message, sub) {
+    document.getElementById('content').innerHTML = `
+      <div class="empty-state">
+        <div class="big">⚠️</div>
+        ${message}
+        <div style="margin-top:6px;font-size:10px;">${sub || ''}</div>
+      </div>`;
+  }
+
+  function render(data) {
+    const latest = data.latest_run;
+    const history = data.history || [];
+
+    // ── Summary stats from latest run ──
+    const total = latest.results.length;
+    const success = latest.results.filter(r => r.status === 'success').length;
+    const failed = latest.results.filter(r => r.status === 'failed').length;
+
+    let html = '';
+
+    // Overview
+    html += `<div class="section-title">📊 Latest Run Overview</div>`;
+    html += `<div class="grid3">
+      <div class="card"><div class="card-label">Total Pings</div><div class="card-value gold">${total}</div><div class="card-sub">This run</div></div>
+      <div class="card"><div class="card-label">Succeeded</div><div class="card-value green">${success}</div><div class="card-sub">200/202 OK</div></div>
+      <div class="card"><div class="card-label">Failed</div><div class="card-value ${failed > 0 ? 'red' : 'green'}">${failed}</div><div class="card-sub">Errors</div></div>
+    </div>`;
+
+    // Latest run detail
+    html += `<div class="section-title">🎯 Latest Run Detail</div>`;
+    html += `<div class="run-card">
+      <div class="run-header">
+        <div>
+          <div class="run-title">Group ${latest.group_id} — <span class="gold">${latest.group_name}</span></div>
+          <div class="run-time">${latest.run_time_utc} UTC · ${timeAgo(latest.run_time_utc)}</div>
+        </div>
+      </div>`;
+    latest.results.forEach(r => {
+      html += `<div class="ping-row">
+        <div class="ping-left">
+          <span>${engineIcon(r.engine)}</span>
+          <div>
+            <div class="ping-engine">${r.engine}</div>
+            <div class="ping-target">${r.target} · HTTP ${r.http_code}</div>
+          </div>
+        </div>
+        ${badgeFor(r.status)}
+      </div>`;
+    });
+    html += `</div>`;
+
+    // Platform reference
+    html += `<div class="section-title">🌐 Platforms In Rotation</div>`;
+    html += `<div class="card" style="margin-bottom:16px;padding:14px;">
+      <div class="platform-row">
+        <div class="platform-left"><div class="platform-icon" style="background:rgba(59,130,246,0.15);">🌐</div>
+          <div><div class="platform-name">WordPress.com</div><div class="platform-url">durgapsychiatriccentrechennai.wordpress.com</div></div></div>
+        <div style="font-size:10px;color:var(--muted);">Sitemap ping</div>
+      </div>
+      <div class="platform-row">
+        <div class="platform-left"><div class="platform-icon" style="background:rgba(245,158,11,0.15);">✍️</div>
+          <div><div class="platform-name">Blogger</div><div class="platform-url">durgapsychiatric.blogspot.com</div></div></div>
+        <div style="font-size:10px;color:var(--muted);">Sitemap ping</div>
+      </div>
+      <div class="platform-row">
+        <div class="platform-left"><div class="platform-icon" style="background:rgba(34,197,94,0.15);">🪔</div>
+          <div><div class="platform-name">Durga Tamil Hub</div><div class="platform-url">GitHub Pages</div></div></div>
+        <div style="font-size:10px;color:var(--muted);">Sitemap + IndexNow</div>
+      </div>
+    </div>`;
+
+    // History
+    html += `<div class="section-title">📋 Run History (last ${history.length})</div>`;
+    html += `<div class="history-card">`;
+    history.slice().reverse().forEach(run => {
+      html += `<div class="history-run">
+        <div class="history-run-head">
+          <span>Group ${run.group_id} — ${run.group_name}</span>
+          <span>${timeAgo(run.run_time_utc)}</span>
+        </div>
+        <div class="history-pings">`;
+      run.results.forEach(r => {
+        html += `${miniBadge(r.status)} <span style="font-size:9px;color:var(--muted);margin-right:8px;">${r.engine}/${r.target}</span>`;
+      });
+      html += `</div></div>`;
+    });
+    html += `</div>`;
+
+    document.getElementById('content').innerHTML = html;
+
+    document.getElementById('live-dot').classList.remove('off');
+    document.getElementById('source-status').textContent = 'Live data loaded';
+    document.getElementById('last-updated').textContent = 'Updated ' + timeAgo(data.last_updated_utc);
+  }
+
+  async function loadStatus() {
+    document.getElementById('source-status').textContent = 'Loading status.json…';
+    try {
+      const res = await fetch(STATUS_URL + '?t=' + Date.now());
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if (!data.latest_run) throw new Error('status.json has no runs yet');
+      render(data);
+    } catch (err) {
+      document.getElementById('live-dot').classList.add('off');
+      document.getElementById('source-status').textContent = 'Could not load status.json';
+      renderEmpty(
+        'No ping data yet, or status.json not found.',
+        "This file is created automatically the first time the GitHub Actions workflow runs. " +
+        "Trigger it manually from the Actions tab, or wait for tonight's scheduled run (07:30 AM IST). " +
+        "Error: " + err.message
+      );
+    }
+  }
+
+  loadStatus();
+  setInterval(loadStatus, 60000); // auto-refresh every 60s
+</script>
+</body>
+</html>
