@@ -1,0 +1,117 @@
+name: Durga Centre - Daily Rotation Ping
+
+on:
+  schedule:
+    - cron: '30 1 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Run rotation ping and build status
+        run: |
+          GROUP=$(( $(date +%j) % 6 ))
+          echo "Today's group: $GROUP"
+
+          ping_one () {
+            ENGINE="$1"; TARGET="$2"; URL="$3"
+            T=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" --retry 3 --retry-delay 5 "$URL" 2>/dev/null || echo "000")
+            if [ "$CODE" = "200" ] || [ "$CODE" = "202" ]; then S="success"; else S="failed"; fi
+            echo "  -> $ENGINE ($TARGET) HTTP $CODE [$S]"
+            echo "{\"engine\":\"$ENGINE\",\"target\":\"$TARGET\",\"http_code\":\"$CODE\",\"status\":\"$S\",\"time_utc\":\"$T\"}" >> results.ndjson
+          }
+
+          ping_group () {
+            TARGET="$1"; SITEMAP="$2"
+            ping_one "Google" "$TARGET" "https://www.google.com/ping?sitemap=$SITEMAP"
+            ping_one "Bing"   "$TARGET" "https://www.bing.com/ping?sitemap=$SITEMAP"
+            ping_one "Yandex" "$TARGET" "https://yandex.com/blogs/realtime/ping?status=ping&url=$SITEMAP"
+          }
+
+          WP_P1="https://durgapsychiatriccentrechennai.wordpress.com/sitemap-posts-post-1.xml"
+          WP_P2="https://durgapsychiatriccentrechennai.wordpress.com/sitemap-posts-post-2.xml"
+          WP_P3="https://durgapsychiatriccentrechennai.wordpress.com/sitemap-posts-post-3.xml"
+          WP_FULL="https://durgapsychiatriccentrechennai.wordpress.com/sitemap.xml"
+          BLOGGER="https://durgapsychiatric.blogspot.com/sitemap.xml"
+
+          GROUP_NAME="Unknown"
+          case "$GROUP" in
+            0) GROUP_NAME="WordPress Posts 1-50"; ping_group "WordPress P1" "$WP_P1" ;;
+            1) GROUP_NAME="WordPress Posts 51-100"; ping_group "WordPress P2" "$WP_P2" ;;
+            2) GROUP_NAME="WordPress Posts 101-150"; ping_group "WordPress P3" "$WP_P3" ;;
+            3) GROUP_NAME="Tamil Posts Focus"; ping_group "WordPress Full" "$WP_FULL" ;;
+            4) GROUP_NAME="Blogger Posts"; ping_group "Blogger" "$BLOGGER" ;;
+            5) GROUP_NAME="All Platforms"; ping_group "WordPress Full" "$WP_FULL"; ping_group "Blogger" "$BLOGGER" ;;
+          esac
+
+          echo "GROUP=$GROUP" >> "$GITHUB_ENV"
+          echo "GROUP_NAME=$GROUP_NAME" >> "$GITHUB_ENV"
+
+      - name: IndexNow ping (Durga Tamil Hub)
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+        run: |
+          T=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          if [ -z "$INDEXNOW_KEY" ]; then
+            echo "{\"engine\":\"IndexNow\",\"target\":\"Tamil Hub\",\"http_code\":\"-\",\"status\":\"not_configured\",\"time_utc\":\"$T\"}" >> results.ndjson
+            echo "IndexNow skipped: secret not set"
+          else
+            HOST="durgamindskillscarecentre.github.io"
+            PATHNAME="durga-tamil-hub"
+            KEYLOC="https://$HOST/$PATHNAME/$INDEXNOW_KEY.txt"
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" --retry 3 --retry-delay 5 -X POST "https://api.indexnow.org/indexnow" -H "Content-Type: application/json; charset=utf-8" -d "{\"host\":\"$HOST\",\"key\":\"$INDEXNOW_KEY\",\"keyLocation\":\"$KEYLOC\",\"urlList\":[\"https://$HOST/$PATHNAME/\",\"https://$HOST/$PATHNAME/index.html\"]}" || echo "000")
+            if [ "$CODE" = "200" ] || [ "$CODE" = "202" ]; then S="success"; else S="failed"; fi
+            echo "  -> IndexNow HTTP $CODE [$S]"
+            echo "{\"engine\":\"IndexNow\",\"target\":\"Tamil Hub\",\"http_code\":\"$CODE\",\"status\":\"$S\",\"time_utc\":\"$T\"}" >> results.ndjson
+          fi
+
+      - name: Build status.json
+        run: |
+          python3 << 'PYEOF'
+          import json, os
+          from datetime import datetime, timezone
+          group = os.environ.get("GROUP", "")
+          group_name = os.environ.get("GROUP_NAME", "Unknown")
+          results = []
+          with open("results.ndjson") as f:
+              for line in f:
+                  line = line.strip()
+                  if line:
+                      results.append(json.loads(line))
+          run_record = {
+              "run_time_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+              "group_id": group,
+              "group_name": group_name,
+              "results": results,
+          }
+          history = []
+          if os.path.exists("status.json"):
+              try:
+                  with open("status.json") as f:
+                      history = json.load(f).get("history", [])
+              except Exception:
+                  history = []
+          history.append(run_record)
+          history = history[-30:]
+          final = {"last_updated_utc": run_record["run_time_utc"], "latest_run": run_record, "history": history}
+          with open("status.json", "w") as f:
+              json.dump(final, f, indent=2)
+          print("status.json written,", len(history), "runs in history")
+          PYEOF
+
+      - name: Commit status.json
+        run: |
+          git config user.name "durga-auto-ping-bot"
+          git config user.email "actions@github.com"
+          git add status.json
+          git diff --staged --quiet || git commit -m "Update ping status"
+          git push
