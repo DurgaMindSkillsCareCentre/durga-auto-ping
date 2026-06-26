@@ -1,52 +1,6 @@
 {
-  "last_updated_utc": "2026-06-26T10:14:15Z",
-  "history": [
-    {
-      "run_time_utc": "2026-06-26T09:36:15Z",
-      "group_id": "3",
-      "group_name": "Tamil Posts Focus",
-      "results": [
-        {
-          "engine": "Google",
-          "target": "WordPress Full",
-          "http_code": "404",
-          "status": "failed",
-          "time_utc": "2026-06-26T09:36:13Z"
-        },
-        {
-          "engine": "Bing",
-          "target": "WordPress Full",
-          "http_code": "410",
-          "status": "failed",
-          "time_utc": "2026-06-26T09:36:13Z"
-        },
-        {
-          "engine": "Yandex",
-          "target": "WordPress Full",
-          "http_code": "302",
-          "status": "failed",
-          "time_utc": "2026-06-26T09:36:14Z"
-        },
-        {
-          "engine": "IndexNow",
-          "target": "Tamil Hub",
-          "http_code": "202",
-          "status": "success",
-          "time_utc": "2026-06-26T09:36:14Z"
-        }
-      ]
-    },
-    {
-      "run_time_utc": "2026-06-26T10:14:15Z",
-      "results": [
-        {
-          "engine": "IndexNow",
-          "target": "Tamil Hub",
-          "http_code": "200",
-          "status": "success",
-          "time_utc": "2026-06-26T10:14:14Z"
-        }
-      ]
-    }
-  ]
+  "last_updated_utc":"2026-06-26T10:45:30Z",
+  "engine":"IndexNow",
+  "http_code":"200",
+  "status":"success"
 }
